@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "Parquet_2_Flattened_File",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
