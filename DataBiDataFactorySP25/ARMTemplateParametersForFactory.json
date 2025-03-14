@@ -8,11 +8,47 @@
 		"AzureDataLakeStorage1_accountKey": {
 			"value": ""
 		},
+		"AzureDataLakeStorage2_accountKey": {
+			"value": ""
+		},
+		"Snowflake1_password": {
+			"value": ""
+		},
+		"Snowflake2_password": {
+			"value": ""
+		},
+		"Snowflake3_connectionString": {
+			"value": ""
+		},
 		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"value": "https://datalakespring25.dfs.core.windows.net/"
+		},
+		"AzureDataLakeStorage2_properties_typeProperties_url": {
 			"value": "https://datalakespring25.dfs.core.windows.net/"
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"value": "https://databispringkeyvaultsp25.vault.azure.net/"
+		},
+		"Blob_sasUri": {
+			"value": ""
+		},
+		"Snowflake1_properties_typeProperties_database": {
+			"value": "SEATTLE_PET_LIC_DB"
+		},
+		"Snowflake1_properties_typeProperties_role": {
+			"value": "SEATTLE_PET_LIC_ROLE"
+		},
+		"Snowflake1_properties_typeProperties_host": {
+			"value": "PGRECHG-QGA23502.snowflakecomputing.com"
+		},
+		"Snowflake2_properties_typeProperties_database": {
+			"value": "SEATTLE_PET_LIC_DB"
+		},
+		"Snowflake2_properties_typeProperties_role": {
+			"value": "SEATTLE_PET_LIC_ROLE"
+		},
+		"Snowflake2_properties_typeProperties_host": {
+			"value": "PGRECHG-QGA23502.snowflakecomputing.com"
 		}
 	}
 }
