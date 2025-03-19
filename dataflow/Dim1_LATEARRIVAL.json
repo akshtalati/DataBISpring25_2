@@ -15,7 +15,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "SnowflakeTable5",
+						"referenceName": "SnowflakeTable6",
 						"type": "DatasetReference"
 					},
 					"name": "sink1"
@@ -49,6 +49,7 @@
 				"          CUSTOMER_SK as decimal(38,0),",
 				"          CUSTOMER_ID as decimal(38,0),",
 				"          CUSTOMER_NAME as string,",
+				"          BILLTO as string,",
 				"          DI_CREATEDDT as timestamp,",
 				"          PID as string",
 				"     ),",
@@ -59,7 +60,15 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     stageInsert: true) ~> sink1"
+				"     stageInsert: true,",
+				"     mapColumn(",
+				"          CUSTOMER_SK = customer_sk,",
+				"          CUSTOMER_ID = customerid,",
+				"          CUSTOMER_NAME = CustomerName,",
+				"          BILLTO = billTo,",
+				"          DI_CREATEDDT,",
+				"          PID = pid",
+				"     )) ~> sink1"
 			]
 		}
 	}
