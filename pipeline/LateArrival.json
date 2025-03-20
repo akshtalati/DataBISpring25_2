@@ -27,7 +27,7 @@
 				}
 			},
 			{
-				"name": "Data flow1",
+				"name": "Fact",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{

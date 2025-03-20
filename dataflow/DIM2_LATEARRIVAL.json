@@ -1,12 +1,12 @@
 {
-	"name": "FACT_LATEARRIVAL",
+	"name": "DIM2_LATEARRIVAL",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "DelimitedText2",
+						"referenceName": "DelimitedText3",
 						"type": "DatasetReference"
 					},
 					"name": "source1"
@@ -15,7 +15,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "SnowflakeTable7",
+						"referenceName": "SnowflakeTable6",
 						"type": "DatasetReference"
 					},
 					"name": "sink1"
@@ -31,54 +31,44 @@
 			],
 			"scriptLines": [
 				"source(output(",
-				"          invoiceId as string,",
 				"          customerid as string,",
-				"          invoiceDate as string,",
-				"          ShipTo as string,",
-				"          ShipTo_City as string,",
-				"          ShipTo_Country as string,",
-				"          SalespersonPersonID as string,",
-				"          SalespersonName as string,",
-				"          total_product_cnt as string,",
-				"          Total as string",
+				"          CustomerName as string,",
+				"          billTo as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> source1",
-				"source1 keyGenerate(output(invoice_sk as long),",
+				"source1 keyGenerate(output(customer_sk as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> surrogateKey1",
-				"surrogateKey1 derive(PID = \"0\",",
-				"          DI_CreatedDt = currentDate()) ~> derivedColumn1",
+				"surrogateKey1 derive(DI_CREATEDDT = currentDate(),",
+				"          PID = \"0\") ~> derivedColumn1",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
-				"          INVOICE_SK as decimal(38,0),",
-				"          INVOICE_ID as decimal(38,0),",
+				"          CUSTOMER_SK as decimal(38,0),",
 				"          CUSTOMER_ID as decimal(38,0),",
-				"          INVOICE_DT as date,",
-				"          TOTAL_PRODUCT_CNT as decimal(38,0),",
-				"          TOTAL_PRODUCT_COST as double,",
+				"          CUSTOMER_NAME as string,",
+				"          BILLTO as string,",
 				"          DI_CREATEDDT as timestamp,",
 				"          PID as string",
 				"     ),",
 				"     deletable:false,",
-				"     insertable:true,",
+				"     insertable:false,",
 				"     updateable:false,",
-				"     upsertable:false,",
+				"     upsertable:true,",
+				"     keys:['CUSTOMER_ID'],",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     stageInsert: true,",
 				"     mapColumn(",
-				"          INVOICE_ID = invoiceId,",
+				"          CUSTOMER_SK = customer_sk,",
 				"          CUSTOMER_ID = customerid,",
-				"          INVOICE_DT = invoiceDate,",
-				"          TOTAL_PRODUCT_CNT = total_product_cnt,",
-				"          TOTAL_PRODUCT_COST = Total,",
-				"          INVOICE_SK = invoice_sk,",
-				"          PID,",
-				"          DI_CREATEDDT = DI_CreatedDt",
+				"          CUSTOMER_NAME = CustomerName,",
+				"          BILLTO = billTo,",
+				"          DI_CREATEDDT,",
+				"          PID",
 				"     )) ~> sink1"
 			]
 		}
