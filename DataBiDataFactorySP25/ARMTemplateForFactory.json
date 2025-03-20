@@ -27,6 +27,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'Snowflake3'"
 		},
+		"SnowflakeLATEARRIVAL_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SnowflakeLATEARRIVAL'"
+		},
 		"AzureDataLakeStorage1_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://datalakespring25.dfs.core.windows.net/"
@@ -679,6 +683,773 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/Parquet1')]",
 				"[concat(variables('factoryId'), '/datasets/SnowflakeTable3')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LateArrival')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "DIM1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "Dim1_LATEARRIVAL",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"dim1": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Coarse"
+						}
+					},
+					{
+						"name": "Fact",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "DIM1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "FACT_LATEARRIVAL",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {}
+								},
+								"linkedServiceParameters": {}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "DIM2",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Fact",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DIM2_LATEARRIVAL",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Coarse"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Dim1_LATEARRIVAL')]",
+				"[concat(variables('factoryId'), '/dataflows/FACT_LATEARRIVAL')]",
+				"[concat(variables('factoryId'), '/dataflows/DIM2_LATEARRIVAL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dim1_LATEARRIVAL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Dim1FactArrival",
+								"type": "DatasetReference"
+							},
+							"name": "dim1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SnowflakeTable6",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "surrogateKey1"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          customerid as short,",
+						"          CustomerName as string,",
+						"          billTo as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> dim1",
+						"dim1 keyGenerate(output(customer_sk as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> surrogateKey1",
+						"surrogateKey1 derive(DI_CREATEDDT = currentDate(),",
+						"          pid = \"0\") ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          CUSTOMER_SK as decimal(38,0),",
+						"          CUSTOMER_ID as decimal(38,0),",
+						"          CUSTOMER_NAME as string,",
+						"          BILLTO as string,",
+						"          DI_CREATEDDT as timestamp,",
+						"          PID as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     stageInsert: true,",
+						"     mapColumn(",
+						"          CUSTOMER_SK = customer_sk,",
+						"          CUSTOMER_ID = customerid,",
+						"          CUSTOMER_NAME = CustomerName,",
+						"          BILLTO = billTo,",
+						"          DI_CREATEDDT,",
+						"          PID = pid",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Dim1FactArrival')]",
+				"[concat(variables('factoryId'), '/datasets/SnowflakeTable6')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Dim1FactArrival')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "customer_data_part1.csv",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "customerid",
+						"type": "String"
+					},
+					{
+						"name": "CustomerName",
+						"type": "String"
+					},
+					{
+						"name": "billTo",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SnowflakeLATEARRIVAL')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Snowflake",
+				"typeProperties": {
+					"authenticationType": "Basic",
+					"connectionString": "[parameters('SnowflakeLATEARRIVAL_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SnowflakeTable5')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SnowflakeLATEARRIVAL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SnowflakeTable",
+				"schema": [
+					{
+						"name": "CUSTOMER_SK",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "CUSTOMER_ID",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "CUSTOMER_NAME",
+						"type": "VARCHAR",
+						"scale": 0
+					},
+					{
+						"name": "DI_CREATEDDT",
+						"type": "TIMESTAMP_NTZ",
+						"precision": 29,
+						"scale": 9
+					},
+					{
+						"name": "PID",
+						"type": "VARCHAR",
+						"precision": 10,
+						"scale": 0
+					}
+				],
+				"typeProperties": {
+					"schema": "LATEARRIVAL_SCHEMA",
+					"table": "DIM_CUSTOMER"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SnowflakeLATEARRIVAL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SnowflakeTable6')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SnowflakeLATEARRIVAL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SnowflakeTable",
+				"schema": [
+					{
+						"name": "CUSTOMER_SK",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "CUSTOMER_ID",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "CUSTOMER_NAME",
+						"type": "VARCHAR",
+						"scale": 0
+					},
+					{
+						"name": "BILLTO",
+						"type": "VARCHAR",
+						"precision": 200,
+						"scale": 0
+					},
+					{
+						"name": "DI_CREATEDDT",
+						"type": "TIMESTAMP_NTZ",
+						"precision": 29,
+						"scale": 9
+					},
+					{
+						"name": "PID",
+						"type": "VARCHAR",
+						"precision": 10,
+						"scale": 0
+					}
+				],
+				"typeProperties": {
+					"schema": "LATEARRIVAL_SCHEMA",
+					"table": "DIM_CUSTOMER"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SnowflakeLATEARRIVAL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/FACT_LATEARRIVAL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedText2",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SnowflakeTable7",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "surrogateKey1"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          invoiceId as string,",
+						"          customerid as string,",
+						"          invoiceDate as string,",
+						"          ShipTo as string,",
+						"          ShipTo_City as string,",
+						"          ShipTo_Country as string,",
+						"          SalespersonPersonID as string,",
+						"          SalespersonName as string,",
+						"          total_product_cnt as string,",
+						"          Total as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source1",
+						"source1 keyGenerate(output(invoice_sk as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> surrogateKey1",
+						"surrogateKey1 derive(PID = \"0\",",
+						"          DI_CreatedDt = currentDate()) ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          INVOICE_SK as decimal(38,0),",
+						"          INVOICE_ID as decimal(38,0),",
+						"          CUSTOMER_ID as decimal(38,0),",
+						"          INVOICE_DT as date,",
+						"          TOTAL_PRODUCT_CNT as decimal(38,0),",
+						"          TOTAL_PRODUCT_COST as double,",
+						"          DI_CREATEDDT as timestamp,",
+						"          PID as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     stageInsert: true,",
+						"     mapColumn(",
+						"          INVOICE_ID = invoiceId,",
+						"          CUSTOMER_ID = customerid,",
+						"          INVOICE_DT = invoiceDate,",
+						"          TOTAL_PRODUCT_CNT = total_product_cnt,",
+						"          TOTAL_PRODUCT_COST = Total,",
+						"          INVOICE_SK = invoice_sk,",
+						"          PID,",
+						"          DI_CREATEDDT = DI_CreatedDt",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DelimitedText2')]",
+				"[concat(variables('factoryId'), '/datasets/SnowflakeTable7')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "customer_data_part1.csv",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "customerid",
+						"type": "String"
+					},
+					{
+						"name": "CustomerName",
+						"type": "String"
+					},
+					{
+						"name": "billTo",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "sales_data.csv",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "invoiceId",
+						"type": "String"
+					},
+					{
+						"name": "customerid",
+						"type": "String"
+					},
+					{
+						"name": "invoiceDate",
+						"type": "String"
+					},
+					{
+						"name": "ShipTo",
+						"type": "String"
+					},
+					{
+						"name": "ShipTo_City",
+						"type": "String"
+					},
+					{
+						"name": "ShipTo_Country",
+						"type": "String"
+					},
+					{
+						"name": "SalespersonPersonID",
+						"type": "String"
+					},
+					{
+						"name": "SalespersonName",
+						"type": "String"
+					},
+					{
+						"name": "total_product_cnt",
+						"type": "String"
+					},
+					{
+						"name": "Total",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SnowflakeTable7')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SnowflakeLATEARRIVAL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SnowflakeTable",
+				"schema": [
+					{
+						"name": "INVOICE_SK",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "INVOICE_ID",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "CUSTOMER_ID",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "INVOICE_DT",
+						"type": "DATE",
+						"precision": 10,
+						"scale": 0
+					},
+					{
+						"name": "TOTAL_PRODUCT_CNT",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "TOTAL_PRODUCT_COST",
+						"type": "FLOAT",
+						"precision": 15,
+						"scale": 0
+					},
+					{
+						"name": "DI_CREATEDDT",
+						"type": "TIMESTAMP_NTZ",
+						"precision": 29,
+						"scale": 9
+					},
+					{
+						"name": "PID",
+						"type": "VARCHAR",
+						"precision": 10,
+						"scale": 0
+					}
+				],
+				"typeProperties": {
+					"schema": "LATEARRIVAL_SCHEMA",
+					"table": "FCT_INVOICE"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SnowflakeLATEARRIVAL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DIM2_LATEARRIVAL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DelimitedText3",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "SnowflakeTable6",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "surrogateKey1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "alterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          customerid as string,",
+						"          CustomerName as string,",
+						"          billTo as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source1",
+						"source1 keyGenerate(output(customer_sk as long),",
+						"     startAt: 1L,",
+						"     stepValue: 1L) ~> surrogateKey1",
+						"surrogateKey1 derive(DI_CREATEDDT = currentDate(),",
+						"          PID = \"0\") ~> derivedColumn1",
+						"derivedColumn1 alterRow(upsertIf(!isNull(customerid)",
+						")) ~> alterRow1",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          CUSTOMER_SK as decimal(38,0),",
+						"          CUSTOMER_ID as decimal(38,0),",
+						"          CUSTOMER_NAME as string,",
+						"          BILLTO as string,",
+						"          DI_CREATEDDT as timestamp,",
+						"          PID as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:true,",
+						"     upsertable:true,",
+						"     keys:['CUSTOMER_ID'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     stageInsert: true,",
+						"     mapColumn(",
+						"          CUSTOMER_SK = customer_sk,",
+						"          CUSTOMER_ID = customerid,",
+						"          CUSTOMER_NAME = CustomerName,",
+						"          BILLTO = billTo,",
+						"          DI_CREATEDDT,",
+						"          PID",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DelimitedText3')]",
+				"[concat(variables('factoryId'), '/datasets/SnowflakeTable6')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText3')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "customer_data_part2.csv",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "customerid",
+						"type": "String"
+					},
+					{
+						"name": "CustomerName",
+						"type": "String"
+					},
+					{
+						"name": "billTo",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorage1')]"
 			]
 		}
 	]
