@@ -58,7 +58,7 @@
 				}
 			},
 			{
-				"name": "Data flow1",
+				"name": "DIM2",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
