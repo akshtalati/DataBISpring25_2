@@ -1,0 +1,143 @@
+{
+	"name": "SnowflakeTable8",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Snowflake4",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SnowflakeTable",
+		"schema": [
+			{
+				"name": "ARREST_KEY",
+				"type": "NUMBER",
+				"precision": 18,
+				"scale": 0
+			},
+			{
+				"name": "ARREST_DATE",
+				"type": "DATE",
+				"precision": 10,
+				"scale": 0
+			},
+			{
+				"name": "PD_CD",
+				"type": "NUMBER",
+				"precision": 5,
+				"scale": 0
+			},
+			{
+				"name": "PD_DESC",
+				"type": "VARCHAR",
+				"precision": 55,
+				"scale": 0
+			},
+			{
+				"name": "KY_CD",
+				"type": "NUMBER",
+				"precision": 5,
+				"scale": 0
+			},
+			{
+				"name": "OFNS_DESC",
+				"type": "VARCHAR",
+				"precision": 100,
+				"scale": 0
+			},
+			{
+				"name": "LAW_CODE",
+				"type": "VARCHAR",
+				"precision": 10,
+				"scale": 0
+			},
+			{
+				"name": "LAW_CAT_CD",
+				"type": "VARCHAR",
+				"precision": 15,
+				"scale": 0
+			},
+			{
+				"name": "ARREST_BORO",
+				"type": "VARCHAR",
+				"precision": 20,
+				"scale": 0
+			},
+			{
+				"name": "ARREST_PRECINCT",
+				"type": "NUMBER",
+				"precision": 3,
+				"scale": 0
+			},
+			{
+				"name": "JURISDICTION_CODE",
+				"type": "NUMBER",
+				"precision": 2,
+				"scale": 0
+			},
+			{
+				"name": "AGE_GROUP",
+				"type": "VARCHAR",
+				"precision": 10,
+				"scale": 0
+			},
+			{
+				"name": "PERP_SEX",
+				"type": "VARCHAR",
+				"precision": 10,
+				"scale": 0
+			},
+			{
+				"name": "PERP_RACE",
+				"type": "VARCHAR",
+				"precision": 50,
+				"scale": 0
+			},
+			{
+				"name": "X_COORD_CD",
+				"type": "NUMBER",
+				"precision": 7,
+				"scale": 0
+			},
+			{
+				"name": "Y_COORD_CD",
+				"type": "NUMBER",
+				"precision": 7,
+				"scale": 0
+			},
+			{
+				"name": "LATITUDE",
+				"type": "FLOAT",
+				"precision": 15,
+				"scale": 0
+			},
+			{
+				"name": "LONGITUDE",
+				"type": "FLOAT",
+				"precision": 15,
+				"scale": 0
+			},
+			{
+				"name": "NEW_GEOREFERENCED_COLUMN",
+				"type": "VARCHAR",
+				"precision": 244,
+				"scale": 0
+			},
+			{
+				"name": "DI_JOB_ID",
+				"type": "VARCHAR",
+				"precision": 50,
+				"scale": 0
+			},
+			{
+				"name": "DI_LOAD_DT",
+				"type": "DATE",
+				"precision": 10,
+				"scale": 0
+			}
+		],
+		"typeProperties": {
+			"schema": "NYPD_SCHEMA",
+			"table": "NYPD_STAGE"
+		}
+	}
+}
